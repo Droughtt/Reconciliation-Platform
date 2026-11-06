@@ -1,6 +1,4 @@
-import pymysql
-pymysql.version_info = (2, 2, 7, "final", 0)
-pymysql.install_as_MySQLdb()
+
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -21,16 +19,16 @@ DEBUG = env.bool("DEBUG", default=False)
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': env('DB_NAME', default='recon_db'),
-        'USER': env('DB_USER', default='recon_user'),
-        'PASSWORD': env('DB_PASSWORD', default='change_me'),
-        'HOST': '127.0.0.1',
-        'PORT': '3306',
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": env("DB_NAME"),
+        "USER": env("DB_USER"),
+        "PASSWORD": env("DB_PASSWORD"),
+        "HOST": env("DB_HOST", default="127.0.0.1"),
+        "PORT": env("DB_PORT", default="3306"),
+        "OPTIONS": {"charset": "utf8mb4"},
     }
 }
-
 
 # Application definition
 
@@ -46,6 +44,7 @@ INSTALLED_APPS = [
     "imports",
     "reconciliation",
     "reports",
+    "rest_framework.authtoken",
 
 ]
 
@@ -130,3 +129,12 @@ MAILERS = {
     },
 }
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+}
