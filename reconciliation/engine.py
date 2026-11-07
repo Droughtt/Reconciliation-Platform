@@ -111,6 +111,30 @@ def _pass_amount_mismatch(bank_left, ledger_left, outcomes, window):
 
 
 def _pass_possible_match(bank_left, ledger_left, outcomes, window):
+    def candidates(record, others):
+        return [
+            o for o in others
+            if record.reference != o.reference
+            and record.amount == o.amount
+            and _days_apart(record, o) <= window
+        ]
+
+    paired_bank, paired_ledger = set(), set()
+    for b in bank_left:
+        options = candidates(b, ledger_left)
+        # pair only when b and its single candidate pick each other and nobody else
+        if len(options) == 1 and len(candidates(options[0], bank_left)) == 1:
+            l = options[0]
+            paired_bank.add(b.id)
+            paired_ledger.add(l.id)
+            outcomes.append(
+                Outcome("possible_match", b.id, l.id, 40, None,
+                        "Amount and date are close but references differ; needs human confirmation")
+            )
+    return (
+        [b for b in bank_left if b.id not in paired_bank],
+        [l for l in ledger_left if l.id not in paired_ledger],
+    )
     def matches(b, l):
         return b.reference != l.reference and b.amount == l.amount and _days_apart(b, l) <= window
 

@@ -70,3 +70,8 @@ def test_every_record_appears_exactly_once():
     out = reconcile(bank, ledger)
     assert sorted(o.bank_id for o in out if o.bank_id) == [1, 2, 3, 4]
     assert sorted(o.ledger_id for o in out if o.ledger_id) == [10, 11, 12]
+
+def test_ambiguous_possible_matches_are_left_unmatched():
+    bank = [t(1, "A", 750), t(2, "B", 750)]
+    ledger = [t(10, "X", 750)]
+    assert statuses(reconcile(bank, ledger)) == ["unmatched_bank", "unmatched_bank", "unmatched_ledger"]
