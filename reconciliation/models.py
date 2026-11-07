@@ -40,3 +40,14 @@ class Flag(models.Model):
     )
     notes = models.TextField(blank=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+class FlagEvent(models.Model):
+    flag = models.ForeignKey(Flag, on_delete=models.CASCADE, related_name="events")
+    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    old_status = models.CharField(max_length=20)
+    new_status = models.CharField(max_length=20)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
