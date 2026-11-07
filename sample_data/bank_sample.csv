@@ -1,0 +1,7 @@
+reference,date,amount,description
+INV-1001,2026-10-01,50000.00,Vendor Alpha payment
+INV-1002,2026-10-02,"12,000.50",Vendor Beta payment
+INV-1003,2026-10-03,7500,Office rent
+INV-1004,31/02/2026,900,Bad date
+INV-1005,2026-10-05,abc,Bad amount
+,2026-10-06,300,Missing reference

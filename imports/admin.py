@@ -1,3 +1,8 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import BankTransaction, ImportBatch, LedgerEntry, RowError
+
+admin.site.register(ImportBatch)
+admin.site.register(BankTransaction)
+admin.site.register(LedgerEntry)
+admin.site.register(RowError)
