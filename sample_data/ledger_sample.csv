@@ -1,0 +1,5 @@
+reference,date,amount,description
+INV-1001,2026-10-01,51500.00,Vendor Alpha invoice
+INV-1002,2026-10-04,"12,000.50",Vendor Beta invoice
+INV-1003,2026-10-03,7500,Office rent
+INV-1006,2026-10-09,3200,Stationery
