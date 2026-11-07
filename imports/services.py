@@ -52,12 +52,12 @@ def parse_amount(raw: str) -> Decimal:
         raise ValueError(f"amount '{raw}' is not a number")
     if value <= 0:
         raise ValueError("amount must be greater than zero")
-    if value != value.quantize(Decimal("0.01")):
-        raise ValueError("amount has more than 2 decimal places")
     if value > MAX_AMOUNT:
         raise ValueError("amount is too large")
+    if value != value.quantize(Decimal("0.01")):
+        raise ValueError("amount has more than 2 decimal places")
     return value.quantize(Decimal("0.01"))
-
+    
 
 def validate_row(row: dict) -> dict:
     reference = (row.get("reference") or "").strip().upper()
