@@ -12,5 +12,6 @@ pycparser==3.12
 Pygments==2.21.0
 PyMySQL==1.2.3
 pytest==9.2.0
+pytest-django==4.14.0
 sqlparse==0.6.1
 tzdata==2026.6
