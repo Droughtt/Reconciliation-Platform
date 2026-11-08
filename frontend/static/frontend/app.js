@@ -164,6 +164,7 @@
       return;
     }
     $("#whoami").textContent = `${me.username} · ${roleLabel()}`;
+    $("#admin-link").classList.toggle("hidden", !me.is_superuser);
     $("#login").classList.add("hidden");
     $("#app").classList.remove("hidden");
     route();
