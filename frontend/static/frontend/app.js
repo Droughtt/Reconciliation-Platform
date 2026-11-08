@@ -142,6 +142,7 @@
   const has = (...r) => me.is_superuser || me.roles.some((x) => r.includes(x));
   const canUpload = () => has("Administrator", "Analyst");
   const canReview = () => has("Administrator", "Reviewer");
+  const canManageUsers = () => has("Administrator");
   const roleLabel = () => (me.is_superuser ? "Superuser" : me.roles.join(", ") || "No role");
 
   function signOut() {
@@ -164,7 +165,7 @@
       return;
     }
     $("#whoami").textContent = `${me.username} · ${roleLabel()}`;
-    $("#admin-link").classList.toggle("hidden", !me.is_superuser);
+    $("#users-tab").classList.toggle("hidden", !canManageUsers());
     $("#login").classList.add("hidden");
     $("#app").classList.remove("hidden");
     route();
@@ -215,12 +216,13 @@
     if (!me) return;
     navId++;
     const [, name = "imports", id] = location.hash.replace(/^#/, "").split("/");
-    const active = name === "runs" || name === "review" ? name : "imports";
+    const active = ["runs", "review", "users"].includes(name) ? name : "imports";
     document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t.dataset.view === active));
     try {
       if (name === "runs" && id) await viewRun(Number(id), animate);
       else if (name === "runs") await viewRuns(animate);
       else if (name === "review") await viewReview(animate);
+      else if (name === "users") await viewUsers(animate);
       else await viewImports(animate);
     } catch (err) {
       if (err.status !== 401) toast(err.message, "error");
@@ -535,6 +537,88 @@
       btn.disabled = false;
     }
   });
+    // ---------- users (administrators only) ----------
+  const ROLES = ["Administrator", "Analyst", "Reviewer"];
+
+  async function viewUsers(animate) {
+    if (!canManageUsers()) {
+      location.hash = "#/imports";
+      return;
+    }
+    const my = navId;
+    const users = await api("/api/auth/users/");
+    if (my !== navId) return;
+
+    const rows = users
+      .map((u, i) => {
+        const locked = u.role === "Superuser" || u.username === me.username;
+        const roleCell = locked
+          ? `${badge([esc(u.role || "No role"), "slate"])}${u.username === me.username ? ` <span class="muted small">you</span>` : ""}`
+          : `<select data-role-user="${u.id}" aria-label="Role for ${esc(u.username)}">
+               ${u.role ? "" : `<option value="" selected disabled>No role</option>`}
+               ${ROLES.map((r) => `<option ${u.role === r ? "selected" : ""}>${r}</option>`).join("")}
+             </select>`;
+        const action = locked
+          ? `<span class="muted">—</span>`
+          : `<button class="btn ghost sm" data-toggle-user="${u.id}" data-active="${u.is_active}">${u.is_active ? "Deactivate" : "Activate"}</button>`;
+        return `<tr style="--i:${Math.min(i, 12)}">
+          <td class="strong">${esc(u.username)}</td>
+          <td>${roleCell}</td>
+          <td>${u.is_active ? badge(["Active", "green"]) : badge(["Inactive", "slate"])}</td>
+          <td class="muted">${u.last_login ? stamp(u.last_login) : "Never"}</td>
+          <td>${action}</td>
+        </tr>`;
+      })
+      .join("");
+
+    paint(
+      `<h1>Users</h1>
+       <p class="sub">Give each person the smallest role that lets them do their job. Deactivate instead of deleting, so the audit trail stays intact.</p>
+       <form id="new-user" class="card row">
+         <label>Username <input name="username" autocomplete="off" required></label>
+         <label>Password <input name="password" type="password" autocomplete="new-password" required></label>
+         <label>Role <select name="role">${ROLES.map((r) => `<option>${r}</option>`).join("")}</select></label>
+         <button class="btn" type="submit">Add user</button>
+       </form>
+       ${table(["Username", "Role", "Status", "Last sign-in", ""], rows, "No users yet.")}`,
+      animate
+    );
+  }
+
+  async function doCreateUser(form) {
+    const btn = form.querySelector("button");
+    btn.disabled = true;
+    const f = new FormData(form);
+    try {
+      await api("/api/auth/users/", {
+        method: "POST",
+        body: { username: f.get("username"), password: f.get("password"), role: f.get("role") },
+      });
+      toast("User created", "ok");
+      await route(false);
+    } catch (err) {
+      toast(err.message, "error");
+      btn.disabled = false;
+    }
+  }
+
+  const toggleUser = guard(async (id, wasActive) => {
+    await api(`/api/auth/users/${id}/`, { method: "PATCH", body: { is_active: !wasActive } });
+    toast(wasActive ? "User deactivated" : "User activated", "ok");
+    await route(false);
+  });
+
+  view.addEventListener("change", async (e) => {
+    const sel = e.target.closest("[data-role-user]");
+    if (!sel) return;
+    try {
+      await api(`/api/auth/users/${sel.dataset.roleUser}/`, { method: "PATCH", body: { role: sel.value } });
+      toast("Role updated", "ok");
+    } catch (err) {
+      if (err.status !== 401) toast(err.message, "error");
+    }
+    await route(false); // re-draw so a rejected change snaps back
+  });
 
   // ---------- page-level events (one listener, works for every view) ----------
   view.addEventListener("click", (e) => {
@@ -545,12 +629,31 @@
     if ((el = t.closest("[data-run]"))) { location.hash = `#/runs/${el.dataset.run}`; return; }
     if ((el = t.closest("[data-filter]"))) { runCtx.filter = el.dataset.filter; paint(runPage(), false); return; }
     if ((el = t.closest("[data-rfilter]"))) { reviewFilter = el.dataset.rfilter; route(false); return; }
+    if ((el = t.closest("[data-toggle-user]"))) return toggleUser(el.dataset.toggleUser, el.dataset.active === "true");
     if (t.closest("#export")) exportCsv();
   });
   view.addEventListener("submit", (e) => {
     if (e.target.id === "upload") { e.preventDefault(); doUpload(e.target); }
     if (e.target.id === "new-run") { e.preventDefault(); doRun(e.target); }
+    if (e.target.id === "new-user") { e.preventDefault(); doCreateUser(e.target); }
   });
+  
+  // ---------- theme ----------
+  const themeBtn = $("#theme");
+  const systemDark = window.matchMedia("(prefers-color-scheme: dark)");
+  const currentTheme = () => document.documentElement.dataset.theme || (systemDark.matches ? "dark" : "light");
+  function applyTheme(t) {
+    if (t) document.documentElement.dataset.theme = t;
+    themeBtn.textContent = currentTheme() === "dark" ? "Light mode" : "Dark mode";
+  }
+  themeBtn.addEventListener("click", () => {
+    const next = currentTheme() === "dark" ? "light" : "dark";
+    try { localStorage.setItem("theme", next); } catch { /* storage blocked, theme just won't persist */ }
+    applyTheme(next);
+  });
+  let savedTheme = null;
+  try { savedTheme = localStorage.getItem("theme"); } catch { /* ignore */ }
+  applyTheme(savedTheme);
 
   // ---------- go ----------
   if (token) start();
