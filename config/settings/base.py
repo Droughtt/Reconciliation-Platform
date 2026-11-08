@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "reconciliation",
     "reports",
     "rest_framework.authtoken",
+    "frontend",
 
 ]
 

@@ -1,0 +1,47 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Reconcile</title>
+  <link rel="stylesheet" href="{% static 'frontend/app.css' %}">
+</head>
+<body>
+  <div id="toasts" aria-live="polite"></div>
+
+  <main id="login" class="login hidden">
+    <form id="login-form" class="login-card stack">
+      <div>
+        <h1>Reconcile</h1>
+        <p class="sub">Sign in to review transactions.</p>
+      </div>
+      <label>Username <input name="username" autocomplete="username" required></label>
+      <label>Password <input name="password" type="password" autocomplete="current-password" required></label>
+      <button class="btn" type="submit">Sign in</button>
+    </form>
+  </main>
+
+  <div id="app" class="hidden">
+    <header class="topbar">
+      <div class="brand">Reconcile</div>
+      <nav>
+        <a class="tab" data-view="imports" href="#/imports">Imports</a>
+        <a class="tab" data-view="runs" href="#/runs">Runs</a>
+        <a class="tab" data-view="review" href="#/review">Review queue</a>
+      </nav>
+      <div class="user">
+        <span id="whoami"></span>
+        <button id="logout" class="btn ghost sm" type="button">Sign out</button>
+      </div>
+    </header>
+    <section id="view" class="view"></section>
+  </div>
+
+  <div id="overlay" class="overlay"></div>
+  <aside id="drawer" class="drawer" aria-hidden="true"></aside>
+
+  <script src="{% static 'frontend/app.js' %}" defer></script>
+</body>
+</html>
