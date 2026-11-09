@@ -178,3 +178,9 @@ code.sample{white-space:pre;overflow-x:auto;background:var(--slate-bg);color:var
 .guide{margin:0}
 .guide dt{font-weight:500;margin-top:16px}
 .guide dd{margin:2px 0 0;color:var(--muted);font-size:13.5px}
+.cells{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+.cell{display:flex;flex-direction:column;gap:2px;padding:8px 11px;border:1px solid var(--line);border-radius:8px;font-size:13px;transition:border-color .2s,background .2s}
+.cell span{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.cell strong{font-weight:500;word-break:break-word}
+.cell.bad{border-color:var(--red);background:var(--red-bg)}
+.cell.bad span,.cell.bad strong{color:var(--red)}

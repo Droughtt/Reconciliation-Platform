@@ -337,21 +337,37 @@
     }
   }
 
+  const FIELD_LABELS = { reference: "Reference", date: "Date", amount: "Amount", description: "Description", none: "Extra cells" };
+
   const openBatchErrors = guard(async (id) => {
     const b = await api(`/api/imports/${id}/`);
+    const sentence = (s) => s.charAt(0).toUpperCase() + s.slice(1) + (/[.!?]$/.test(s) ? "" : ".");
+
+    const items = b.row_errors
+      .map((r) => {
+        // the reason starts with the field that failed, so highlight that cell
+        const bad = ((r.reason.match(/^(date|amount|reference)/i) || [])[1] || "").toLowerCase();
+        const cells = Object.entries(r.raw_data)
+          .map(([key, val]) => {
+            const text = Array.isArray(val) ? val.join(", ") : val;
+            const label = FIELD_LABELS[key.toLowerCase()] || esc(key);
+            const shown = text === "" || text === null ? `<em class="muted">empty</em>` : esc(text);
+            return `<div class="cell ${key.toLowerCase() === bad ? "bad" : ""}"><span>${label}</span><strong>${shown}</strong></div>`;
+          })
+          .join("");
+        return `<div class="item">
+          <strong>Line ${r.row_number} of the file</strong>
+          <div class="err">${esc(sentence(r.reason))}</div>
+          <div class="cells">${cells}</div>
+        </div>`;
+      })
+      .join("");
+
     openDrawer(`
       <button class="close" data-close aria-label="Close">×</button>
-      <h2>Failed records</h2>
-      <p class="sub">${esc(b.original_filename)} · ${b.failed_rows} of ${b.total_rows} rows were rejected.</p>
-      ${b.row_errors
-        .map(
-          (r) => `<div class="item">
-            <strong>Row ${r.row_number}</strong>
-            <div class="err">${esc(r.reason)}</div>
-            <code>${esc(JSON.stringify(r.raw_data))}</code>
-          </div>`
-        )
-        .join("")}`);
+      <h2>Rows that need fixing</h2>
+      <p class="sub">${esc(b.original_filename)} · ${b.failed_rows} of ${b.total_rows} rows were skipped. The rest were imported normally. Correct these rows in your CSV and upload it again.</p>
+      ${items}`);
   });
 
   // ---------- runs ----------
