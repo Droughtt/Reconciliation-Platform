@@ -75,8 +75,38 @@
     }, 3800);
   }
 
+  const PAGE = 10;
+  let pageState = {}; // how many rows each table is showing, kept across quick refreshes
+
+  function paginate() {
+    view.querySelectorAll(".table-wrap").forEach((wrap, idx) => {
+      const rows = [...wrap.querySelectorAll("tbody tr")];
+      if (rows.length <= PAGE) return;
+      const key = `${location.hash}|${idx}`;
+      let shown = Math.min(pageState[key] || PAGE, rows.length);
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "btn ghost sm more";
+      const sync = () => {
+        rows.forEach((r, i) => (r.hidden = i >= shown));
+        const left = rows.length - shown;
+        btn.hidden = left <= 0;
+        btn.textContent = `Show ${Math.min(PAGE, left)} more · ${left} remaining`;
+        pageState[key] = shown;
+      };
+      btn.addEventListener("click", () => {
+        shown += PAGE;
+        sync();
+      });
+      sync();
+      wrap.after(btn);
+    });
+  }
+
   function paint(html, animate = true) {
+    if (animate) pageState = {};
     view.innerHTML = html;
+    paginate();
     if (animate) {
       view.classList.remove("enter");
       void view.offsetWidth; // restart the CSS animation
@@ -236,16 +266,39 @@
     const batches = await api("/api/imports/");
     if (my !== navId) return;
 
-    const upload = canUpload()
-      ? `<form id="upload" class="card row">
-           <select name="kind" aria-label="File type">
-             <option value="bank">Bank statement</option>
-             <option value="ledger">Company ledger</option>
-           </select>
-           <input type="file" name="file" accept=".csv,text/csv" required>
-           <button class="btn" type="submit">Upload</button>
-         </form>`
-      : `<p class="note">Your role can view imports but not upload files.</p>`;
+    const imported = batches.reduce((n, b) => n + b.imported_rows, 0);
+    const rejected = batches.reduce((n, b) => n + b.failed_rows, 0);
+    const last = batches[0]
+      ? new Date(batches[0].created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })
+      : "—";
+
+    const stats = `<div class="stats">
+        <div class="stat"><span>Files</span><strong>${batches.length}</strong></div>
+        <div class="stat"><span>Rows imported</span><strong>${imported}</strong></div>
+        <div class="stat"><span>Rows rejected</span><strong class="${rejected ? "warn" : ""}">${rejected}</strong></div>
+        <div class="stat"><span>Last upload</span><strong>${last}</strong></div>
+      </div>`;
+
+    const card = (kind, title, blurb) => `
+      <form class="card upload-form">
+        <input type="hidden" name="kind" value="${kind}">
+        <div>
+          <span class="card-title">${title}</span>
+          <p class="muted small">${blurb}</p>
+        </div>
+        <input type="file" name="file" accept=".csv,text/csv" required>
+        <div class="card-foot">
+          <button class="link-quiet" type="button" data-guide>CSV format</button>
+          <button class="btn" type="submit">Upload</button>
+        </div>
+      </form>`;
+
+    const uploads = canUpload()
+      ? `<div class="uploads">
+           ${card("bank", "Bank statement", "Transactions as recorded by the bank.")}
+           ${card("ledger", "Company ledger", "Transactions as recorded in your accounting system.")}
+         </div>`
+      : `<p class="note">Uploads are handled by analysts and administrators. Open any file's failed records from the table below.</p>`;
 
     const rows = batches
       .map(
@@ -265,12 +318,12 @@
     paint(
       `<h1>Imports</h1>
        <p class="sub">Upload bank and ledger CSV files. Rows that fail validation are reported, never silently dropped.</p>
-       ${upload}
+       ${stats}
+       ${uploads}
        ${table(["ID", "Type", "File", "Status", "Imported", "Failed", "By", "Uploaded"], rows, "No files uploaded yet.")}`,
       animate
     );
   }
-
   async function doUpload(form) {
     const btn = form.querySelector("button");
     btn.disabled = true;
@@ -633,9 +686,40 @@
     if (t.closest("#export")) exportCsv();
   });
   view.addEventListener("submit", (e) => {
-    if (e.target.id === "upload") { e.preventDefault(); doUpload(e.target); }
+    if (e.target.classList.contains("upload-form")) { e.preventDefault(); doUpload(e.target); }
     if (e.target.id === "new-run") { e.preventDefault(); doRun(e.target); }
     if (e.target.id === "new-user") { e.preventDefault(); doCreateUser(e.target); }
+  });
+
+    // ---------- CSV format guide ----------
+  function openGuide() {
+    openDrawer(`
+      <button class="close" data-close aria-label="Close">×</button>
+      <h2>CSV format guide</h2>
+      <p class="sub">What the importer accepts, and what happens next.</p>
+      <dl class="guide">
+        <dt>Columns</dt><dd>Required: reference, date, amount. Optional: description. Header names are not case-sensitive.</dd>
+        <dt>Dates</dt><dd>YYYY-MM-DD, DD-MM-YYYY or DD/MM/YYYY. A date like 01/10/2026 is read as 1 October 2026.</dd>
+        <dt>Amounts</dt><dd>Positive numbers with at most two decimals. A ₹ sign and thousands commas are fine.</dd>
+        <dt>References</dt><dd>Up to 100 characters. They are trimmed and uppercased, so inv-1001 matches INV-1001.</dd>
+        <dt>File</dt><dd>UTF-8 .csv, up to 5 MB. The same file can't be uploaded twice as the same type.</dd>
+        <dt>Bad rows</dt><dd>Rejected one by one and listed under Failed. They never stop the rest of the file.</dd>
+      </dl>
+      <h3>Example</h3>
+      <code class="sample">reference,date,amount,description
+INV-1001,2026-10-01,50000.00,Vendor Alpha
+INV-1002,2026-10-02,"12,000.50",Vendor Beta</code>
+      <h3>How rows are compared</h3>
+      <dl class="guide">
+        <dt>Matched</dt><dd>Same reference, date and amount.</dd>
+        <dt>Date or amount mismatch</dt><dd>Same reference and dates within 5 days, but the date or the amount differs.</dd>
+        <dt>Possible match</dt><dd>Different references, same amount and close dates, only when there is exactly one candidate.</dd>
+        <dt>Bank only / Ledger only</dt><dd>Nothing comparable on the other side.</dd>
+        <dt>Duplicate</dt><dd>An identical record beyond the one that matched.</dd>
+      </dl>`);
+  }
+  document.addEventListener("click", (e) => {
+    if (e.target.closest("[data-guide]")) openGuide();
   });
   
   // ---------- theme ----------

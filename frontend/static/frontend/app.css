@@ -157,3 +157,24 @@ th{padding:13px 18px}
 .topbar{height:62px}
 .view{padding:56px 28px 96px}
 .card,.stat,.table-wrap{box-shadow:0 1px 2px rgba(0,0,0,.04)}
+/* ---------- structure: footer, upload cards, guide ---------- */
+#app{min-height:100vh;display:flex;flex-direction:column}
+.view{width:100%;flex:1 0 auto}
+.footer{border-top:1px solid var(--line);padding:22px 28px;color:var(--muted);font-size:12.5px}
+.footer-inner{max-width:1080px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:12px 24px;flex-wrap:wrap}
+.link-quiet{font:inherit;background:none;border:0;padding:0;color:var(--muted);cursor:pointer;text-decoration:underline;text-underline-offset:3px;transition:color .2s}
+.link-quiet:hover{color:var(--text)}
+.uploads{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-bottom:26px}
+.upload-form{display:flex;flex-direction:column;gap:16px;transition:border-color .2s}
+.upload-form:hover{border-color:var(--muted)}
+.upload-form p{margin:4px 0 0}
+.card-title{font-family:var(--serif);font-size:24px;letter-spacing:-.01em}
+.card-foot{display:flex;justify-content:space-between;align-items:center;gap:12px}
+input[type=file]{width:100%;color:var(--muted)}
+input[type=file]::file-selector-button{font:inherit;font-weight:500;color:var(--text);background:var(--slate-bg);border:0;border-radius:6px;padding:6px 12px;margin-right:12px;cursor:pointer;transition:background .2s}
+input[type=file]::file-selector-button:hover{background:var(--line)}
+.more{display:block;margin:16px auto 0}
+code.sample{white-space:pre;overflow-x:auto;background:var(--slate-bg);color:var(--text);padding:12px 14px;border-radius:8px;margin-top:8px}
+.guide{margin:0}
+.guide dt{font-weight:500;margin-top:16px}
+.guide dd{margin:2px 0 0;color:var(--muted);font-size:13.5px}
