@@ -16,7 +16,7 @@ environ.Env.read_env(BASE_DIR / ".env")
 
 SECRET_KEY = env("SECRET_KEY")
 DEBUG = env.bool("DEBUG", default=False)
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[".vercel.app", "localhost", "127.0.0.1"])
 
 DATABASES = {
     "default": {
@@ -25,7 +25,7 @@ DATABASES = {
         "USER": env("DB_USER"),
         "PASSWORD": env("DB_PASSWORD"),
         "HOST": env("DB_HOST", default="127.0.0.1"),
-        "PORT": env("DB_PORT", default="3306"),
+        "PORT": env("DB_PORT", default="4000"),
         "OPTIONS": {"charset": "utf8mb4"},
     }
 }
