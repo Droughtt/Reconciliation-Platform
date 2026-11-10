@@ -1,3 +1,4 @@
+from django.db.models.functions import Lower
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.contrib.auth.password_validation import validate_password
@@ -36,8 +37,14 @@ class UserCreateSerializer(serializers.Serializer):
 
     def validate_username(self, value):
         value = value.strip()
-        if User.objects.filter(username__iexact=value).exists():
-            raise serializers.ValidationError("That username is already taken.")
+
+        if User.objects.annotate(
+            normalized_username=Lower("username")
+        ).filter(normalized_username=value.lower()).exists():
+            raise serializers.ValidationError(
+                "That username is already taken."
+            )
+
         return value
 
     def validate(self, attrs):

@@ -13,8 +13,19 @@ class Migration(migrations.Migration):
         ('imports', '0001_initial'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
-
+    
+       
     operations = [
+         migrations.CreateModel(
+                name='ReconciliationRun',
+                fields=[
+                    ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                    ('created_at', models.DateTimeField(auto_now_add=True)),
+                    ('bank_batch', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='+', to='imports.importbatch')),
+                    ('created_by', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to=settings.AUTH_USER_MODEL)),
+                    ('ledger_batch', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='+', to='imports.importbatch')),
+                ],
+            ),
         migrations.CreateModel(
             name='MatchResult',
             fields=[
@@ -23,6 +34,11 @@ class Migration(migrations.Migration):
                 ('confidence', models.PositiveSmallIntegerField(default=0)),
                 ('amount_difference', models.DecimalField(blank=True, decimal_places=2, max_digits=14, null=True)),
                 ('reason', models.CharField(max_length=255)),
+                ('run', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE,
+                    related_name='results',
+                    to='reconciliation.reconciliationrun',
+                )),
                 ('bank_txn', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='imports.banktransaction')),
                 ('ledger_entry', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='imports.ledgerentry')),
             ],
@@ -38,19 +54,6 @@ class Migration(migrations.Migration):
                 ('result', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='flag', to='reconciliation.matchresult')),
             ],
         ),
-        migrations.CreateModel(
-            name='ReconciliationRun',
-            fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('bank_batch', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='+', to='imports.importbatch')),
-                ('created_by', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to=settings.AUTH_USER_MODEL)),
-                ('ledger_batch', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='+', to='imports.importbatch')),
-            ],
-        ),
-        migrations.AddField(
-            model_name='matchresult',
-            name='run',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='results', to='reconciliation.reconciliationrun'),
-        ),
+       
+     
     ]
