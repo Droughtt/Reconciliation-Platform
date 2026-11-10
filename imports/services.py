@@ -37,7 +37,7 @@ def parse_date(raw: str):
             return datetime.strptime(raw, fmt).date()
         except ValueError:
             continue
-        raise ValueError(f"date '{raw}' is not a real date (use YYYY-MM-DD, DD-MM-YYYY or DD/MM/YYYY)")
+    raise ValueError(f"date '{raw}' is not a real date (use YYYY-MM-DD, DD-MM-YYYY or DD/MM/YYYY)")
 
 
 def parse_amount(raw: str) -> Decimal:
