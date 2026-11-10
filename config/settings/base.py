@@ -29,7 +29,10 @@ DATABASES = {
         "OPTIONS": {"charset": "utf8mb4"},
     }
 }
+if env.bool("DB_SSL", default=False):
+    import certifi
 
+    DATABASES["default"]["OPTIONS"]["ssl"] = {"ca": certifi.where()}
 # Application definition
 
 INSTALLED_APPS = [

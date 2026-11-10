@@ -3,3 +3,5 @@
 __pycache__/
 *.pyc
 report_*.csv
+.vercel/
+.env.local
