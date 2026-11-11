@@ -121,17 +121,23 @@
       this.status = status;
     }
   }
-
   function errorMessage(data, status) {
-    if (!data) return `Request failed (${status})`;
-    if (data.detail) return data.detail;
-    const first = Object.entries(data)[0];
-    if (first) {
-      const [key, val] = first;
-      const msg = Array.isArray(val) ? val[0] : val;
-      return key === "non_field_errors" ? msg : `${key}: ${msg}`;
+    const flat = (v) => {
+      if (v === null || v === undefined) return "";
+      if (typeof v === "string") return v;
+      if (Array.isArray(v)) return flat(v[0]);
+      if (typeof v === "object") return flat(v.message ?? v.detail ?? Object.values(v)[0]);
+      return String(v);
+    };
+    if (data && typeof data === "object") {
+      if (data.detail) return flat(data.detail);
+      const [key, val] = Object.entries(data)[0] || [];
+      if (key) {
+        const msg = flat(val);
+        if (msg) return key === "non_field_errors" || key === "error" ? msg : `${key}: ${msg}`;
+      }
     }
-    return `Request failed (${status})`;
+    return `Request failed (${status}). Please try again.`;
   }
 
   // credentials: "omit" keeps a Django admin session cookie out of API calls,
