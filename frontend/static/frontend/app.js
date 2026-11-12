@@ -555,13 +555,24 @@
       .map(([k, [label]]) => `<option value="${k}">${label}</option>`)
       .join("");
 
-    const form = canReview()
-      ? `<form id="flag-form" class="stack" data-id="${f.id}">
-           <label>Decision <select name="status">${options}</select></label>
-           <label>Note <textarea name="notes" rows="3" placeholder="Required to dismiss or escalate"></textarea></label>
-           <button class="btn" type="submit">Save decision</button>
-         </form>`
-      : `<p class="note">Only reviewers can change flags.</p>`;
+    
+const reviewerAccess = canReview();
+const analystAccess = has("Analyst") && !reviewerAccess;
+
+const flagStatusOptions = Object.entries(FLAG)
+  .filter(([k]) => k !== f.status)
+  .filter(([k]) => reviewerAccess || (analystAccess && k === "escalated"))
+  .map(([k, [label]]) => `<option value="${k}">${label}</option>`)
+  .join("");
+
+const form = reviewerAccess || analystAccess
+  ? `<form id="flag-form" class="stack" data-id="${f.id}">
+       <label>Decision <select name="status">${flagStatusOptions}</select></label>
+       <label>Note <textarea name="notes" rows="3" placeholder="Required to dismiss or escalate"></textarea></label>
+       <button class="btn" type="submit">${analystAccess ? "Escalate flag" : "Save decision"}</button>
+     </form>`
+  : `<p class="note">Only reviewers can change flags.</p>`;
+
 
     const events = f.events.length
       ? f.events

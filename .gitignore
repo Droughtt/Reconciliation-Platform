@@ -5,3 +5,4 @@ __pycache__/
 report_*.csv
 .vercel/
 .env.local
+local.sqlite3

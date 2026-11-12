@@ -20,13 +20,15 @@ ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[".vercel.app", "localhost", "
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.mysql",
+        "ENGINE": env("DB_ENGINE", default="django.db.backends.mysql"),
         "NAME": env("DB_NAME"),
         "USER": env("DB_USER"),
         "PASSWORD": env("DB_PASSWORD"),
         "HOST": env("DB_HOST", default="127.0.0.1"),
-        "PORT": env("DB_PORT", default="4000"),
+        "PORT": env("DB_PORT", default="3306"),
         "OPTIONS": {"charset": "utf8mb4"},
+        "CONN_MAX_AGE": env.int("CONN_MAX_AGE", default=0),
+        "CONN_HEALTH_CHECKS": True,
     }
 }
 if env.bool("DB_SSL", default=False):

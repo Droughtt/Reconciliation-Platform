@@ -8,6 +8,8 @@ from imports.models import BankTransaction, LedgerEntry
 from reconciliation.models import Flag, MatchResult
 
 ZERO = Decimal("0.00")
+def _money(value):
+    return format(value, ".2f")
 OPEN_FLAG_STATUSES = [Flag.Status.NEEDS_REVIEW, Flag.Status.ESCALATED]
 
 CSV_COLUMNS = [
@@ -54,11 +56,11 @@ def build_summary(run):
         "flags_by_status": flag_counts,
         "open_flags": flags.filter(status__in=OPEN_FLAG_STATUSES).count(),
         "totals": {
-            "bank_total": str(bank_total),
-            "ledger_total": str(ledger_total),
-            "net_difference": str(bank_total - ledger_total),
-            "amount_mismatch_net": str(mismatches["net"] or ZERO),
-            "amount_mismatch_gross": str(mismatches["gross"] or ZERO),
+            "bank_total": _money(bank_total),
+            "ledger_total": _money(ledger_total),
+            "net_difference": _money(bank_total - ledger_total),
+            "amount_mismatch_net": _money(mismatches["net"] or ZERO),
+            "amount_mismatch_gross": _money(mismatches["gross"] or ZERO),
         },
     }
 

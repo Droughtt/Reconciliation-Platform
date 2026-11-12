@@ -3,12 +3,31 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from accounts.permissions import CanReviewFlags, ReadOnlyAnyRole
+from accounts.permissions import (
+    ADMIN,
+    ANALYST,
+    REVIEWER,
+    ReadOnlyAnyRole,
+    has_role,
+)
+from rest_framework.permissions import BasePermission
 
 from .flag_serializers import FlagDetailSerializer, FlagSerializer, FlagUpdateSerializer
 from .models import Flag
 from .review import FlagUpdateError, update_flag
 
+
+class CanUpdateFlag(BasePermission):
+    """Reviewers/admins can review; analysts can only escalate."""
+
+    def has_permission(self, request, view):
+        if has_role(request.user, ADMIN, REVIEWER):
+            return True
+
+        return (
+            has_role(request.user, ANALYST)
+            and request.data.get("status") == Flag.Status.ESCALATED
+        )
 
 class FlagListView(APIView):
     permission_classes = [ReadOnlyAnyRole]
@@ -29,7 +48,7 @@ class FlagListView(APIView):
 class FlagDetailView(APIView):
     def get_permissions(self):
         if self.request.method == "PATCH":
-            return [CanReviewFlags()]
+            return [CanUpdateFlag()]
         return [ReadOnlyAnyRole()]
 
     def get(self, request, pk):
