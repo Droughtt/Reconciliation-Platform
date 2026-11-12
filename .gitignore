@@ -6,3 +6,5 @@ report_*.csv
 .vercel/
 .env.local
 local.sqlite3
+# Local backups
+backups/
