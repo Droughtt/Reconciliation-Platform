@@ -18,8 +18,23 @@ class RunSerializer(serializers.ModelSerializer):
         fields = ["id", "bank_batch", "ledger_batch", "created_by", "created_at", "summary"]
 
     def get_summary(self, run):
-        rows = run.results.values("status").annotate(n=Count("id"))
-        return {row["status"]: row["n"] for row in rows}
+        # When the queryset is annotated (list view) use the pre-computed
+        # counts to avoid N+1 queries.  Fall back to the per-run query for
+        # single-object responses (e.g. after creating a run).
+        from .models import MatchResult
+
+        summary = {}
+        for value, _ in MatchResult.Status.choices:
+            attr = f"count_{value}"
+            count = getattr(run, attr, None)
+            if count is not None:
+                if count > 0:
+                    summary[value] = count
+            else:
+                # Not annotated — fallback to original per-run query.
+                rows = run.results.values("status").annotate(n=Count("id"))
+                return {row["status"]: row["n"] for row in rows}
+        return summary
 
 
 def _side(record):

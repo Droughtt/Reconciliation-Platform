@@ -27,7 +27,7 @@ DATABASES = {
         "HOST": env("DB_HOST", default="127.0.0.1"),
         "PORT": env("DB_PORT", default="3306"),
         "OPTIONS": {"charset": "utf8mb4"},
-        "CONN_MAX_AGE": env.int("CONN_MAX_AGE", default=0),
+        "CONN_MAX_AGE": env.int("CONN_MAX_AGE", default=600),
         "CONN_HEALTH_CHECKS": True,
     }
 }
@@ -144,4 +144,6 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
+    "PAGE_SIZE": 50,
 }

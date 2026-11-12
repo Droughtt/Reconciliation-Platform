@@ -1,3 +1,4 @@
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
@@ -5,7 +6,7 @@ from rest_framework.views import APIView
 
 from accounts.permissions import CanImportAndReconcile, ReadOnlyAnyRole
 
-from .models import ReconciliationRun
+from .models import MatchResult, ReconciliationRun
 from .serializers import MatchResultSerializer, RunRequestSerializer, RunSerializer
 from .services import RunInputError, run_reconciliation
 
@@ -18,6 +19,13 @@ class RunListCreateView(APIView):
 
     def get(self, request):
         runs = ReconciliationRun.objects.select_related("created_by").order_by("-created_at")
+        # Annotate per-status result counts to avoid N+1 queries.
+        for value, _ in MatchResult.Status.choices:
+            runs = runs.annotate(**{
+                f"count_{value}": Count(
+                    "results", filter=Q(results__status=value)
+                )
+            })
         return Response(RunSerializer(runs, many=True).data)
 
     def post(self, request):

@@ -13,3 +13,6 @@ SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", default=True)
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# Avoid a DB round-trip for sessions on every request.
+SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
