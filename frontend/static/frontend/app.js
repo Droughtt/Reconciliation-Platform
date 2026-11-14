@@ -115,6 +115,18 @@
   }
 
   // ---------- API ----------
+  // Short-lived GET cache — avoids duplicate network round-trips when the same
+  // endpoint is requested several times within a few seconds (e.g. route()
+  // calling viewRuns which fetches /imports/ that was already fetched moments
+  // ago).  Any non-GET request, or an explicit bust, clears the whole cache so
+  // mutating actions always see fresh data.
+  const _cache = new Map();
+  const CACHE_TTL = 8_000; // ms
+
+  function bustCache() {
+    _cache.clear();
+  }
+
   class ApiError extends Error {
     constructor(message, status) {
       super(message);
@@ -143,6 +155,14 @@
   // credentials: "omit" keeps a Django admin session cookie out of API calls,
   // otherwise DRF's SessionAuthentication would demand a CSRF token.
   async function api(path, { method = "GET", body, form } = {}) {
+    // Serve GET requests from cache when available.
+    if (method === "GET") {
+      const hit = _cache.get(path);
+      if (hit && Date.now() - hit.ts < CACHE_TTL) return hit.data;
+    } else {
+      bustCache();
+    }
+
     const headers = {};
     let payload;
     if (token) headers.Authorization = `Token ${token}`;
@@ -163,6 +183,8 @@
       throw new ApiError("Session expired. Please sign in again.", 401);
     }
     if (!res.ok) throw new ApiError(errorMessage(data, res.status), res.status);
+
+    if (method === "GET") _cache.set(path, { data, ts: Date.now() });
     return data;
   }
 
@@ -185,6 +207,7 @@
     token = null;
     me = null;
     runCtx = null;
+    bustCache();
     sessionStorage.removeItem("token");
     view.innerHTML = "";
     closeDrawer();
