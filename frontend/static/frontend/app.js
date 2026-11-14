@@ -273,6 +273,8 @@
   // ---------- router ----------
   async function route(animate = true) {
     if (!me) return;
+    // Show a lightweight loading placeholder so the UI never appears frozen
+    view.innerHTML = `<div class="loading-spinner">Loading…</div>`;
     navId++;
     const [, name = "imports", id] = location.hash.replace(/^#/, "").split("/");
     const active = ["runs", "review", "users"].includes(name) ? name : "imports";
