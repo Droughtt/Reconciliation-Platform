@@ -348,7 +348,7 @@
 
     paint(
       `<h1>Imports</h1>
-       <p class="sub">Upload bank and ledger CSV files. Rows that fail validation are reported, never silently dropped.</p>
+       <p class="sub">Upload bank and ledger CSV files.</p>
        ${stats}
        ${uploads}
        ${table(["ID", "Type", "File", "Status", "Imported", "Failed", "By", "Uploaded"], rows, "No files uploaded yet.")}`,
@@ -564,7 +564,7 @@
 
     paint(
       `<h1>Review queue</h1>
-       <p class="sub">An anomaly is a reason to investigate, not a verdict. Record what you found and why.</p>
+      
        <div class="chips">${chips}</div>
        ${table(["Result", "Reference", "Amount", "Difference", "Reason", "Review", "Updated"], rows, "Nothing here. Nice and quiet.")}`,
       animate
@@ -684,7 +684,7 @@ const form = reviewerAccess || analystAccess
 
     paint(
       `<h1>Users</h1>
-       <p class="sub">Give each person the smallest role that lets them do their job. Deactivate instead of deleting, so the audit trail stays intact.</p>
+       <p class="sub"></p>
        <form id="new-user" class="card row">
          <label>Username <input name="username" autocomplete="off" required></label>
          <label>Password <input name="password" type="password" autocomplete="new-password" required></label>
