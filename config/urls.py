@@ -8,5 +8,4 @@ urlpatterns = [
     path("api/reconciliation/", include("reconciliation.urls")),
     path("api/reports/", include("reports.urls")),
     path("", include("frontend.urls")),
-    path("ping/", include("frontend.urls")),
 ]
