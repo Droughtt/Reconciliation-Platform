@@ -7,7 +7,7 @@
   },
   "crons": [
     {
-      "path": "/ping/",
+      "path": "/api/ping/",
       "schedule": "*/5 * * * *"
     }
   ]
