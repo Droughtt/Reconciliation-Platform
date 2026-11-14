@@ -18,6 +18,9 @@ The demo runs on free hosting, so the first request after a quiet period is slow
 These are demo accounts with synthetic data only.
 
 ## Screenshots
+### Users (administrators)
+
+![Users screen](assets/users.png)
 
 | Imports | Run results |
 |---|---|
