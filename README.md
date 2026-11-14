@@ -17,16 +17,12 @@ The demo runs on free hosting, so the first request after a quiet period is slow
 
 These are demo accounts with synthetic data only.
 
-## Screenshots
-### Users (administrators)
+Screenshots
 
-![Users screen](assets/users.png)
-
-| Imports | Run results |
-|---|---|
-| ![Imports page](assets/1794633288690.png) | ![Run results](assets/1794633342648.png) |
-| **Review queue** | **Users (administrators)** |
-| ![Review queue](assets/1794633362379.png) | ![Users screen](assets/1794633381544.png) |
+Imports| Run results
+"Imports page" (assets/imports.png)| "Run results" (assets/run-results.png)
+Review queue| Users (administrators)
+"Review queue" (assets/review-queue.png)| "Users screen" (assets/users.png)
 
 ## What it does
 
